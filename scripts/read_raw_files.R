@@ -1,5 +1,5 @@
 # install.packages("devtools")
-devtools::install_github("PaulESantos/co2fluxtent")
+# devtools::install_github("PaulESantos/co2fluxtent")
 
 library(co2fluxtent)
 library(tidyverse)
@@ -7,7 +7,6 @@ library(tidyverse)
 source("scripts/FUNCTIONS.R")
 
 # Look for flux files in a folder
-licor_files <- co2fluxtent::read_files("raw_data/test/")
 licor_files <- Map(c, co2fluxtent::read_files("raw_data/Site 1/"), 
                    co2fluxtent::read_files("raw_data/Site 2/"))
 
@@ -34,7 +33,10 @@ licor_nee <- licor_files %>%
   flux_calc_own(param = "nee", 
                 skip = 3,
                 vol = 1.2^3,
-                area = 1.2^2) %>%  
+                area = 1.2^2, 
+                tstart = 20, 
+                tfinish = 80,
+                signal_threshold = 95) %>%  
   mutate(filename = basename(filename)) 
 
 
@@ -42,5 +44,8 @@ licor_et <- licor_files %>%
   flux_calc_own(param = "et", 
                 skip = 3,
                 vol = 1.2^3,
-                area = 1.2^2) %>%  
+                area = 1.2^2, 
+                tstart = 20, 
+                tfinish = 80,
+                signal_threshold = 95) %>%  
   mutate(filename = basename(filename)) 

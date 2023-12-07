@@ -140,8 +140,8 @@ flux_calc_own <- function (fluxfiles, param = "nee", skip = 3,
                            tfinish = tfinish, nee_lm = param_lm, nee_exp = nee_exp, 
                            rsqd = rsqd, sigma = sigma, aic.lm = aic.lm, 
                            aic.nlm = aic.nlm,
-                           c_prime_min = min(cw_prime[tstart:tfinish]),
-                           c_prime_max = max(cw_prime[tstart:tfinish])))
+                           c_prime_min = min(cw_prime[tstart:tfinish], na.rm = T),
+                           c_prime_max = max(cw_prime[tstart:tfinish], na.rm = T)))
       replicate <- readline("Would you like to redo the fitting with \n a different time domain? (y/n)")
       if (replicate == "y") {
         neeet.fit(filename, tstart = NULL, tfinish = NULL, signal_threshold = signal_threshold)
@@ -149,16 +149,16 @@ flux_calc_own <- function (fluxfiles, param = "nee", skip = 3,
         return(tibble::tibble(filename, tstart, tfinish, 
                               camb, tav, pav, param_lm, nee_exp, rsqd, sigma, 
                               aic.lm, aic.nlm,
-                              c_prime_min = min(cw_prime[tstart:tfinish]),
-                              c_prime_max = max(cw_prime[tstart:tfinish])))
+                              c_prime_min = min(cw_prime[tstart:tfinish], na.rm = T),
+                              c_prime_max = max(cw_prime[tstart:tfinish], na.rm = T)))
       }
     } else if ("et" == param) {
       print(tibble::tibble(filename = filename, tstart = tstart, 
                            tfinish = tfinish, flux_lm = param_lm, flux_nlm = flux_exp, 
                            rsqd = rsqd, nlm_sigma = sigma, aic.lm = aic.lm, 
                            aic.nlm = aic.nlm,
-                           w_prime_min = min(cw_prime[tstart:tfinish]),
-                           w_prime_max = max(cw_prime[tstart:tfinish])))
+                           w_prime_min = min(cw_prime[tstart:tfinish], na.rm = T),
+                           w_prime_max = max(cw_prime[tstart:tfinish], na.rm = T)))
       replicate <- readline("Would you like to redo the fitting with \n a different time domain? (y/n)")
       if (replicate == "y") {
         neeet.fit(filename, tstart = NULL, tfinish = NULL, signal_threshold = signal_threshold)
@@ -166,8 +166,8 @@ flux_calc_own <- function (fluxfiles, param = "nee", skip = 3,
         return(tibble::tibble(filename, tstart, tfinish, 
                               wamb, tav, pav, cav, param_lm, flux_exp, rsqd, 
                               sigma, aic.lm, aic.nlm,
-                              w_prime_min = min(cw_prime[tstart:tfinish]),
-                              w_prime_max = max(cw_prime[tstart:tfinish])))
+                              w_prime_min = min(cw_prime[tstart:tfinish], na.rm = T),
+                              w_prime_max = max(cw_prime[tstart:tfinish], na.rm = T)))
       }
     }
   }

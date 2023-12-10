@@ -65,5 +65,3 @@ licor_et <- licor_files %>%
                 tfinish = 80,
                 signal_threshold = 95,
                 ask_flag = TRUE)
-
-# test

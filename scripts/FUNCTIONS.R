@@ -1,10 +1,15 @@
 # filename <- "raw_data/test/1_2000_east_3_day_photo.txt"
 # filename <- "raw_data/Site 2/2_2200_east_5_day_photo.txt"
 # fluxfiles <- licor_files
-flux_calc_own <- function (fluxfiles, param = "nee", skip = 3, 
-                           vol = 2.197, area = 1.69, 
-                           tstart = NULL, tfinish = NULL,
-                           signal_threshold = 95) {
+flux_calc_own <- function (fluxfiles, 
+                           param = "nee",
+                           skip = 3, 
+                           vol = 2.197, 
+                           area = 1.69, 
+                           tstart = NULL, 
+                           tfinish = NULL,
+                           signal_threshold = 95,
+                           ask_flag = TRUE) {
   
   neeet.fit <- function(filename, tstart = tstart, tfinish = tstart, signal_threshold = signal_threshold) {
     suppressMessages(suppressWarnings(input <- read_delim(filename, skip = skip, delim = "\t")))
@@ -45,6 +50,12 @@ flux_calc_own <- function (fluxfiles, param = "nee", skip = 3,
     temp <- as.numeric(as.character(input$`Temperature (C)`))
     signal_strength <- as.numeric(as.character(input$`CO2 Signal Strength`))
     
+    if(is.null(tstart) | is.null(tfinish)){
+      pch <- 1
+    } else {
+      pch <- ifelse(time %in% seq(tstart, tfinish), 16, 1)
+    }
+    
     tav <- mean(temp)
     pav <- mean(press)
     cav <- mean(co2)
@@ -67,7 +78,7 @@ flux_calc_own <- function (fluxfiles, param = "nee", skip = 3,
     }
     
     plot(cw_prime ~ (time), col = c("black","red")[as.numeric((signal_strength < signal_threshold))+1],
-         main = filename, ylab = tag)
+         main = filename, ylab = tag, pch = pch)
     
     if(is.null(tstart)){
       tstart <- readline("Enter preferred start time for fitting. Do not include units. \n Round to nearest integer second. \n Do not use 0. \n  If default of 10s is preferred, press 'return':")
@@ -147,11 +158,23 @@ flux_calc_own <- function (fluxfiles, param = "nee", skip = 3,
       if (replicate == "y") {
         neeet.fit(filename, tstart = NULL, tfinish = NULL, signal_threshold = signal_threshold)
       } else {
+        if(ask_flag == TRUE){
+          flag <- readline("Would you like to flag the flux measurements? (y/n)")
+          if(flag == "y"){
+            flagged <- TRUE
+          } else {
+            flagged <- FALSE
+          }
+        } else {
+          flagged <- FALSE
+        }
+        
         return(tibble::tibble(filename, tstart, tfinish, 
                               camb, tav, pav, param_lm, nee_exp, rsqd, sigma, 
                               aic.lm, aic.nlm,
                               c_prime_min = min(cw_prime[tstart:tfinish], na.rm = T),
-                              c_prime_max = max(cw_prime[tstart:tfinish], na.rm = T)))
+                              c_prime_max = max(cw_prime[tstart:tfinish], na.rm = T),
+                              flagged = flagged))
       }
     } else if ("et" == param) {
       print(tibble::tibble(filename = filename, tstart = tstart, 
@@ -164,11 +187,22 @@ flux_calc_own <- function (fluxfiles, param = "nee", skip = 3,
       if (replicate == "y") {
         neeet.fit(filename, tstart = NULL, tfinish = NULL, signal_threshold = signal_threshold)
       } else {
+        if(ask_flag == TRUE){
+          flag <- readline("Would you like to flag the flux measurements? (y/n)")
+          if(flag == "y"){
+            flagged <- TRUE
+          } else {
+            flagged <- FALSE
+          }
+        } else {
+          flagged <- FALSE
+        }
         return(tibble::tibble(filename, tstart, tfinish, 
                               wamb, tav, pav, cav, param_lm, flux_exp, rsqd, 
                               sigma, aic.lm, aic.nlm,
                               w_prime_min = min(cw_prime[tstart:tfinish], na.rm = T),
-                              w_prime_max = max(cw_prime[tstart:tfinish], na.rm = T)))
+                              w_prime_max = max(cw_prime[tstart:tfinish], na.rm = T),
+                              flagged = flagged))
       }
     }
   }
@@ -191,12 +225,12 @@ flux_calc_own <- function (fluxfiles, param = "nee", skip = 3,
     names.vec <- c("filename", "tstart", "tfinish", "camb", 
                    "tav", "pav", "nee_lm", "nee_exp", "lm_rsqd", "non_linear_sigma", 
                    "aic_lm", "aic_nlm",
-                   "c_prime_min", "c_prime_max")
+                   "c_prime_min", "c_prime_max","flagged")
   } else if ("et" == param) {
     names.vec <- c("filename", "tstart", "tfinish", "wamb", 
                    "tav", "pav", "cav", "flux_lm", "flux_nlm", "lm_rsqd", 
                    "non_linear_sigma", "aic_lm", "aic_nlm",
-                   "w_prime_min", "w_prime_max")
+                   "w_prime_min", "w_prime_max","flagged")
   }
   names(stats.df) <- names.vec
   return(stats.df)
@@ -269,4 +303,12 @@ test_flux_files <- function(fluxfiles, skip = 3, min_rows = 20){
   }))
   
   return(fluxfiles)
+}
+
+filter_flagged <- function(fluxfiles, flux_df){
+  x1 <- list(photo_names = fluxfiles$photo_names, resp_names = fluxfiles$resp_names) %>% 
+    lapply(., function(x){ x[x %in% licor_nee$filename[licor_nee$flagged]]})
+  
+  return(c(x1, fluxfiles["ambient_names"]))
+  
 }

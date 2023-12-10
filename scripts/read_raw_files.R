@@ -8,7 +8,11 @@ source("scripts/FUNCTIONS.R")
 
 # Look for flux files in a folder
 licor_files <- Map(c, co2fluxtent::read_files("raw_data/Site 1/"), 
-                   co2fluxtent::read_files("raw_data/Site 2/"))
+                   co2fluxtent::read_files("raw_data/Site 2/"),
+                   co2fluxtent::read_files("raw_data/Site 3/"),
+                   co2fluxtent::read_files("raw_data/Site 4/"),
+                   co2fluxtent::read_files("raw_data/Site 5/"))
+licor_files <- Map(c, co2fluxtent::read_files("raw_data/Site 3/"))
 
 # Check if the files are ok
 licor_files <- test_flux_files(licor_files, skip = 3, min_rows = 50)
@@ -36,8 +40,20 @@ licor_nee <- licor_files %>%
                 area = 1.2^2, 
                 tstart = 20, 
                 tfinish = 80,
-                signal_threshold = 95) %>%  
-  mutate(filename = basename(filename)) 
+                signal_threshold = 95,
+                ask_flag = TRUE)
+
+# If want to rerun only the flagged files
+licor_nee_flagged <- licor_files %>% 
+  filter_flagged(., licor_nee) %>% 
+  flux_calc_own(param = "nee", 
+                skip = 3,
+                vol = 1.2^3,
+                area = 1.2^2, 
+                tstart = 20, 
+                tfinish = 80,
+                signal_threshold = 95,
+                ask_flag = FALSE)
 
 
 licor_et <- licor_files %>% 
@@ -47,5 +63,5 @@ licor_et <- licor_files %>%
                 area = 1.2^2, 
                 tstart = 20, 
                 tfinish = 80,
-                signal_threshold = 95) %>%  
-  mutate(filename = basename(filename)) 
+                signal_threshold = 95,
+                ask_flag = TRUE)

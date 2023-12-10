@@ -119,6 +119,7 @@ flux_calc_own <- function (fluxfiles, param = "nee", skip = 3,
       nee_exp <- NA
       sigma <- NA
       aic.nlm <- NA
+      flux_exp <- NA
     } else {
       sigma <- summary(uptake.fm)$sigma
       aic.nlm <- stats::AIC(uptake.fm)
